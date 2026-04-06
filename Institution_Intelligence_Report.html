@@ -1,0 +1,1912 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Institution Intelligence Report</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap');
+
+  :root {
+    --bg: #0a0c10;
+    --surface: #111318;
+    --card: #161920;
+    --border: #1e2330;
+    --accent: #4f8ef7;
+    --accent2: #e07b4f;
+    --accent3: #5dc88a;
+    --accent4: #c45df0;
+    --text: #e2e6f0;
+    --muted: #7a84a0;
+    --highlight: #f0c040;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  .header {
+    background: linear-gradient(135deg, #0d1220 0%, #111a2e 50%, #0d1220 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 40px 48px 32px;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(79,142,247,0.12) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .header-label {
+    font-family: 'Syne', sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 10px;
+    opacity: 0.9;
+  }
+  .header h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    color: #fff;
+    line-height: 1.2;
+  }
+  .header h1 span { color: var(--accent); }
+  .header-sub {
+    color: var(--muted);
+    font-size: 13px;
+    margin-top: 8px;
+    font-weight: 300;
+  }
+  .header-stats {
+    display: flex;
+    gap: 32px;
+    margin-top: 28px;
+    flex-wrap: wrap;
+  }
+  .stat-pill {
+    background: rgba(79,142,247,0.08);
+    border: 1px solid rgba(79,142,247,0.18);
+    border-radius: 8px;
+    padding: 10px 18px;
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+  }
+  .stat-pill .n { font-size: 22px; font-weight: 700; color: var(--accent); display: block; }
+  .stat-pill .l { color: var(--muted); font-size: 10px; letter-spacing: 1px; text-transform: uppercase; }
+
+  /* CONTROLS */
+  .controls {
+    display: flex;
+    gap: 12px;
+    padding: 20px 48px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .search-box {
+    flex: 1; min-width: 220px;
+    display: flex; align-items: center; gap: 10px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 9px 14px;
+    transition: border-color 0.2s;
+  }
+  .search-box:focus-within { border-color: var(--accent); }
+  .search-box input {
+    background: none; border: none; outline: none;
+    color: var(--text); font-family: 'DM Sans', sans-serif;
+    font-size: 13px; width: 100%;
+  }
+  .search-box input::placeholder { color: var(--muted); }
+  .search-icon { color: var(--muted); font-size: 14px; }
+
+  .filter-btn {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 9px 16px;
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .filter-btn:hover, .filter-btn.active {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(79,142,247,0.06);
+  }
+  .view-toggle {
+    display: flex;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .view-btn {
+    padding: 9px 14px;
+    border: none;
+    background: none;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 14px;
+  }
+  .view-btn.active { background: rgba(79,142,247,0.12); color: var(--accent); }
+
+  /* RESULTS LABEL */
+  .results-bar {
+    padding: 14px 48px;
+    font-size: 12px;
+    color: var(--muted);
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .results-count { font-weight: 500; color: var(--text); }
+
+  /* GRID VIEW */
+  .grid-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+    padding: 24px 48px;
+  }
+
+  .inst-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.22s;
+    position: relative;
+    overflow: hidden;
+  }
+  .inst-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--type-color, var(--accent)), transparent);
+    opacity: 0;
+    transition: opacity 0.22s;
+  }
+  .inst-card:hover {
+    border-color: rgba(79,142,247,0.35);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+  }
+  .inst-card:hover::before { opacity: 1; }
+
+  .card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+  .card-icon {
+    width: 38px; height: 38px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; flex-shrink: 0;
+    background: var(--type-bg, rgba(79,142,247,0.12));
+  }
+  .card-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px; font-weight: 700;
+    color: #fff; line-height: 1.3;
+    flex: 1;
+  }
+
+  .card-badge {
+    font-size: 9px; font-weight: 600;
+    letter-spacing: 1px; text-transform: uppercase;
+    padding: 3px 7px; border-radius: 4px;
+    background: rgba(79,142,247,0.12);
+    color: var(--accent);
+    flex-shrink: 0;
+    border: 1px solid rgba(79,142,247,0.2);
+  }
+
+  .card-meta {
+    display: flex; flex-direction: column; gap: 6px;
+    margin-bottom: 14px;
+  }
+  .meta-row {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12px; color: var(--muted);
+  }
+  .meta-row .icon { width: 14px; text-align: center; opacity: 0.7; }
+  .meta-row a { color: var(--accent); text-decoration: none; }
+  .meta-row a:hover { text-decoration: underline; }
+
+  .card-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 4px; }
+  .tag {
+    font-size: 10px; padding: 3px 8px; border-radius: 4px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: var(--muted);
+    font-weight: 500;
+  }
+  .tag.dept { background: rgba(93,200,138,0.07); border-color: rgba(93,200,138,0.15); color: var(--accent3); }
+  .tag.location { background: rgba(224,123,79,0.07); border-color: rgba(224,123,79,0.15); color: var(--accent2); }
+  .tag.accred { background: rgba(196,93,240,0.07); border-color: rgba(196,93,240,0.15); color: var(--accent4); }
+
+  /* TABLE VIEW */
+  .table-container {
+    padding: 24px 48px;
+    overflow-x: auto;
+    display: none;
+  }
+  table {
+    width: 100%; border-collapse: collapse;
+    font-size: 12.5px;
+  }
+  thead tr {
+    background: var(--surface);
+    border-bottom: 2px solid var(--border);
+  }
+  th {
+    padding: 12px 16px;
+    text-align: left;
+    font-family: 'Syne', sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+  }
+  th:hover { color: var(--accent); }
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+    cursor: pointer;
+  }
+  tbody tr:hover { background: rgba(79,142,247,0.04); }
+  td { padding: 11px 16px; color: var(--text); vertical-align: middle; }
+  td:first-child { color: var(--muted); font-size: 11px; }
+  .td-name { font-weight: 500; color: #fff; }
+  .td-type { }
+  .td-loc { color: var(--accent2); }
+  .td-email a { color: var(--accent); text-decoration: none; font-size: 11.5px; }
+  .td-email a:hover { text-decoration: underline; }
+  .td-accred { }
+  .accred-tag {
+    font-size: 10px; padding: 2px 8px; border-radius: 3px;
+    font-weight: 600; letter-spacing: 0.5px;
+  }
+  .accred-naac-a { background: rgba(93,200,138,0.12); color: #5dc88a; border: 1px solid rgba(93,200,138,0.2); }
+  .accred-naac-b { background: rgba(240,192,64,0.10); color: #f0c040; border: 1px solid rgba(240,192,64,0.2); }
+  .accred-iit { background: rgba(79,142,247,0.12); color: #4f8ef7; border: 1px solid rgba(79,142,247,0.2); }
+  .accred-iim { background: rgba(196,93,240,0.10); color: #c45df0; border: 1px solid rgba(196,93,240,0.2); }
+  .accred-nit { background: rgba(224,123,79,0.10); color: #e07b4f; border: 1px solid rgba(224,123,79,0.2); }
+  .accred-ugc { background: rgba(255,255,255,0.05); color: var(--muted); border: 1px solid var(--border); }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.75); backdrop-filter: blur(6px);
+    z-index: 1000; align-items: center; justify-content: center;
+    padding: 24px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    max-width: 700px; width: 100%;
+    max-height: 85vh; overflow-y: auto;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+    animation: modalIn 0.22s ease;
+  }
+  @keyframes modalIn {
+    from { opacity:0; transform: scale(0.97) translateY(8px); }
+    to { opacity:1; transform: scale(1) translateY(0); }
+  }
+  .modal-header {
+    padding: 24px 28px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
+  }
+  .modal-title { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; color: #fff; }
+  .modal-subtitle { color: var(--muted); font-size: 12px; margin-top: 4px; }
+  .modal-close {
+    background: none; border: none; color: var(--muted);
+    font-size: 20px; cursor: pointer; padding: 4px; line-height: 1;
+    transition: color 0.2s;
+  }
+  .modal-close:hover { color: #fff; }
+  .modal-body { padding: 24px 28px; }
+
+  .info-section { margin-bottom: 24px; }
+  .info-section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 10px; font-weight: 700;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 12px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .info-section-title::after {
+    content: ''; flex: 1; height: 1px;
+    background: linear-gradient(90deg, var(--border), transparent);
+  }
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  .info-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+  }
+  .info-item .label {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.8px;
+    color: var(--muted); font-weight: 600; margin-bottom: 4px;
+  }
+  .info-item .value {
+    font-size: 13px; color: var(--text); font-weight: 500;
+  }
+  .info-item .value a { color: var(--accent); text-decoration: none; }
+  .info-item .value a:hover { text-decoration: underline; }
+
+  .dept-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+  .dept-chip {
+    padding: 5px 12px; border-radius: 6px;
+    font-size: 12px; font-weight: 500;
+    background: rgba(93,200,138,0.08);
+    border: 1px solid rgba(93,200,138,0.18);
+    color: var(--accent3);
+  }
+
+  .contact-list { display: flex; flex-direction: column; gap: 6px; }
+  .contact-item {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 14px;
+    font-size: 12px;
+  }
+  .contact-item .type {
+    width: 60px; font-size: 10px; text-transform: uppercase;
+    letter-spacing: 0.8px; color: var(--muted); flex-shrink: 0;
+  }
+  .contact-item .email { color: var(--accent); }
+
+  /* LOCATION MAP SECTION */
+  .state-bar {
+    display: flex; flex-wrap: wrap; gap: 6px;
+    margin-top: 6px;
+  }
+  .state-chip {
+    padding: 4px 10px; border-radius: 5px;
+    font-size: 11px;
+    background: rgba(224,123,79,0.08);
+    border: 1px solid rgba(224,123,79,0.18);
+    color: var(--accent2);
+  }
+
+  /* REGION LEGEND */
+  .legend { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); }
+  .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+  /* FOOTER */
+  .footer {
+    padding: 24px 48px;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 11px;
+    text-align: center;
+  }
+
+  /* HIDDEN */
+  .hidden { display: none !important; }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+  @media (max-width: 768px) {
+    .header, .controls, .grid-container, .table-container, .results-bar { padding-left: 20px; padding-right: 20px; }
+    .grid-container { grid-template-columns: 1fr; }
+    .info-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-label">◈ Intelligence Report · Indian Educational Institutions</div>
+  <h1>Institution <span>Directory</span> 2025</h1>
+  <div class="header-sub">Compiled from contact database · Departments · Locations · Accreditation · Contact Details</div>
+  <div class="header-stats">
+    <div class="stat-pill"><span class="n">116</span><span class="l">Institutions</span></div>
+    <div class="stat-pill"><span class="n">248</span><span class="l">Contact Emails</span></div>
+    <div class="stat-pill"><span class="n">20+</span><span class="l">States Covered</span></div>
+    <div class="stat-pill"><span class="n">6</span><span class="l">Institution Types</span></div>
+  </div>
+</div>
+
+<!-- CONTROLS -->
+<div class="controls">
+  <div class="search-box">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="searchInput" placeholder="Search institution, location, department…" oninput="filterInstitutions()">
+  </div>
+  <button class="filter-btn active" onclick="setFilter('all', this)">All</button>
+  <button class="filter-btn" onclick="setFilter('university', this)">Universities</button>
+  <button class="filter-btn" onclick="setFilter('iit', this)">IIT/IIM/NIT</button>
+  <button class="filter-btn" onclick="setFilter('institute', this)">Institutes</button>
+  <button class="filter-btn" onclick="setFilter('pune', this)">Pune Area</button>
+  <button class="filter-btn" onclick="setFilter('north', this)">North India</button>
+  <button class="filter-btn" onclick="setFilter('south', this)">South India</button>
+  <div class="view-toggle">
+    <button class="view-btn active" id="gridBtn" onclick="setView('grid')" title="Grid">⊞</button>
+    <button class="view-btn" id="tableBtn" onclick="setView('table')" title="Table">☰</button>
+  </div>
+</div>
+
+<!-- RESULTS BAR -->
+<div class="results-bar">
+  <span>Showing <span class="results-count" id="resultsCount">116</span> institutions</span>
+  <span>Click any card for detailed info</span>
+</div>
+
+<!-- GRID -->
+<div class="grid-container" id="gridView"></div>
+
+<!-- TABLE -->
+<div class="table-container" id="tableView">
+  <table id="mainTable">
+    <thead>
+      <tr>
+        <th onclick="sortTable(0)">#</th>
+        <th onclick="sortTable(1)">Institution ↕</th>
+        <th onclick="sortTable(2)">Type ↕</th>
+        <th onclick="sortTable(3)">State / Location ↕</th>
+        <th>Departments</th>
+        <th onclick="sortTable(5)">Accreditation ↕</th>
+        <th>Primary Contact</th>
+      </tr>
+    </thead>
+    <tbody id="tableBody"></tbody>
+  </table>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal" id="modalContent">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="modalTitle"></div>
+        <div class="modal-subtitle" id="modalSubtitle"></div>
+      </div>
+      <button class="modal-close" onclick="closeModalDirect()">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<div class="footer">
+  Saransh Kushwaha · NMIET · Institution Contact Reference · 2025 &nbsp;|&nbsp; 248 contacts across 116 institutions
+</div>
+
+<script>
+// ============================================================
+// INSTITUTION DATA — enriched with research
+// ============================================================
+const institutions = [
+  {
+    id: 1, name: "MVM Career", domain: "gmail.com",
+    type: "Other", state: "Unknown", city: "Unknown",
+    accred: "—", established: "—",
+    departments: [],
+    contacts: ["mvmcareer@gmail.com"],
+    website: "", notes: "Gmail-based contact — likely a placement/staffing account."
+  },
+  {
+    id: 2, name: "Sandip University", domain: "sandipuniversity.edu.in",
+    type: "University", state: "Maharashtra", city: "Nashik",
+    accred: "NAAC A", established: "2015",
+    departments: ["Engineering & Technology","Computer Science","Management","Pharmacy","Law","Commerce","Design","Pharmacy","Applied Sciences"],
+    contacts: ["careers@sandipuniversity.edu.in"],
+    website: "https://sandipuniversity.edu.in",
+    notes: "Private university; 250+ acre campus; UGC recognized; NAAC 'A' grade; member AIU, IEEE, AIMA. Strong B.Tech, MBA, BCA/MCA programs."
+  },
+  {
+    id: 3, name: "Vikrant University", domain: "vikrantuniversity.ac.in",
+    type: "University", state: "Madhya Pradesh", city: "Gwalior",
+    accred: "UGC Approved", established: "2012",
+    departments: ["Engineering","Management","Law","Education","Arts & Science","Computer Applications","Pharmacy"],
+    contacts: ["apply@vikrantuniversity.ac.in"],
+    website: "https://vikrantuniversity.ac.in",
+    notes: "Private university in Gwalior, MP. Offers UG/PG/PhD programs. UGC recognized."
+  },
+  {
+    id: 4, name: "SRM University", domain: "srmuniversity.ac.in",
+    type: "University", state: "Multiple", city: "Pan India",
+    accred: "NAAC A++", established: "1985",
+    departments: ["Engineering & Technology","Medicine","Science & Humanities","Management","Law","Agriculture","Architecture","Dental Sciences"],
+    contacts: ["talent@srmuniversity.ac.in"],
+    website: "https://srmuniversity.ac.in",
+    notes: "One of India's top-ranked private universities. Multiple campuses. NAAC A++, NIRF ranked."
+  },
+  {
+    id: 5, name: "DESPU (Desh Bhagat University)", domain: "despu.edu.in",
+    type: "University", state: "Punjab", city: "Fatehgarh Sahib",
+    accred: "UGC Approved", established: "2012",
+    departments: ["Engineering","Management","Education","Sciences","Arts","Pharmacy","Law"],
+    contacts: ["recruitment@despu.edu.in"],
+    website: "https://despu.edu.in",
+    notes: "Private university in Punjab. UGC-recognized. Offers wide range of programs."
+  },
+  {
+    id: 6, name: "Phonics University", domain: "phonicsedu.com",
+    type: "University", state: "Jharkhand", city: "Ranchi",
+    accred: "UGC Approved", established: "2019",
+    departments: ["Engineering","Computer Science","Management","Arts & Science","Education"],
+    contacts: ["career@phonicsedu.com"],
+    website: "https://phonicsedu.com",
+    notes: "Newer private university in Jharkhand."
+  },
+  {
+    id: 7, name: "Mewar University", domain: "mewaruniversity.org",
+    type: "University", state: "Rajasthan", city: "Chittorgarh",
+    accred: "UGC Approved", established: "2009",
+    departments: ["Engineering","Management","Computer Science","Education","Science","Agriculture","Pharmacy","Nursing"],
+    contacts: ["career.mewar@mewaruniversity.org","mewar@mewaruniversity.org"],
+    website: "https://mewaruniversity.org",
+    notes: "Private university. Multiple programs. Correspondence/distance education also offered."
+  },
+  {
+    id: 8, name: "Saroj University", domain: "sarojuniversity.edu.in",
+    type: "University", state: "Uttar Pradesh", city: "Lucknow",
+    accred: "UGC Approved", established: "2019",
+    departments: ["Medical","Dental","Paramedical","Nursing","Pharmacy","Engineering","Management","Arts & Science"],
+    contacts: ["hr@sarojuniversity.edu.in"],
+    website: "https://sarojuniversity.edu.in",
+    notes: "Private health-focused university in Lucknow."
+  },
+  {
+    id: 9, name: "SRKU (Gmail)", domain: "gmail.com",
+    type: "Other", state: "Unknown", city: "Unknown",
+    accred: "—", established: "—",
+    departments: [],
+    contacts: ["srku.recruitment@gmail.com"],
+    website: "", notes: "Gmail-based contact — likely SRKU (Sunrise University) recruitment email."
+  },
+  {
+    id: 10, name: "VVIT (VNR Vignana Jyothi Institute)", domain: "vvit.net",
+    type: "Institute", state: "Andhra Pradesh", city: "Guntur",
+    accred: "NAAC A", established: "2007",
+    departments: ["CSE","ECE","EEE","Civil","Mechanical","IT","MBA","MCA"],
+    contacts: ["vvitu@vvit.net"],
+    website: "https://vvit.net",
+    notes: "Autonomous engineering institute. NAAC A accredited. AICTE approved."
+  },
+  {
+    id: 11, name: "United University", domain: "uniteduniversity.edu.in",
+    type: "University", state: "Uttar Pradesh", city: "Prayagraj",
+    accred: "UGC Approved", established: "2015",
+    departments: ["Engineering","Management","Law","Science","Agriculture","Education"],
+    contacts: ["hr@uniteduniversity.edu.in"],
+    website: "https://uniteduniversity.edu.in",
+    notes: "Private university in Prayagraj, UP."
+  },
+  {
+    id: 12, name: "Vijay Bhoomi University", domain: "vijaybhoomi.edu.in",
+    type: "University", state: "Maharashtra", city: "Karjat (Mumbai Region)",
+    accred: "UGC Approved", established: "2019",
+    departments: ["Design","Business","Technology","Liberal Arts","Architecture"],
+    contacts: ["hr@vijaybhoomi.edu.in"],
+    website: "https://vijaybhoomi.edu.in",
+    notes: "Unique design-forward private university near Mumbai. Focus on design & creativity."
+  },
+  {
+    id: 13, name: "Brainware University", domain: "brainwareuniversity.ac.in",
+    type: "University", state: "West Bengal", city: "Kolkata (Barasat)",
+    accred: "UGC Approved", established: "2017",
+    departments: ["Engineering","Computer Science","Management","Allied Health Sciences","Law","Education","Forensic Science"],
+    contacts: ["sharani.hr@brainwareuniversity.ac.in"],
+    website: "https://brainwareuniversity.ac.in",
+    notes: "Private university near Kolkata. Good IT programs."
+  },
+  {
+    id: 14, name: "Sam Global University", domain: "samglobaluniversity.ac.in",
+    type: "University", state: "Madhya Pradesh", city: "Raisen (Bhopal Region)",
+    accred: "UGC Approved", established: "2014",
+    departments: ["Engineering","Management","Science","Education","Arts","Pharmacy","Computer Applications"],
+    contacts: ["hr@samglobaluniversity.ac.in"],
+    website: "https://samglobaluniversity.ac.in",
+    notes: "Private university in MP."
+  },
+  {
+    id: 15, name: "VGU (Vel's Global University)", domain: "vgu.ac.in",
+    type: "University", state: "Tamil Nadu", city: "Chennai",
+    accred: "NAAC A", established: "2008",
+    departments: ["Engineering","Science","Arts","Management","Law","Allied Health Sciences","Pharmacy","Education"],
+    contacts: ["careers@vgu.ac.in"],
+    website: "https://vgu.ac.in",
+    notes: "VGU is NAAC A accredited. Known for health sciences and engineering."
+  },
+  {
+    id: 16, name: "Medicaps University", domain: "medicaps.ac.in",
+    type: "University", state: "Madhya Pradesh", city: "Indore",
+    accred: "NAAC B++", established: "2015",
+    departments: ["Engineering","Computer Science","Management","Commerce","Architecture","Science"],
+    contacts: ["career@medicaps.ac.in"],
+    website: "https://medicaps.ac.in",
+    notes: "Private university in Indore. Well-established engineering programs."
+  },
+  {
+    id: 17, name: "KLH (Koneru Lakshmaiah – Hyderabad)", domain: "klh.edu.in",
+    type: "University", state: "Telangana", city: "Hyderabad",
+    accred: "NAAC A+", established: "2000",
+    departments: ["Engineering","Computer Science","Data Science","AI/ML","Management","Science"],
+    contacts: ["hr.bmp@klh.edu.in"],
+    website: "https://klh.edu.in",
+    notes: "KL University – Hyderabad campus. NAAC A+. Strong placement record."
+  },
+  {
+    id: 18, name: "DSIT Yoga (Gmail)", domain: "gmail.com",
+    type: "Other", state: "Unknown", city: "Unknown",
+    accred: "—", established: "—",
+    departments: [], contacts: ["hrdsityog@gmail.com"],
+    website: "", notes: "Gmail-based contact — context unclear."
+  },
+  {
+    id: 19, name: "Srinivas University", domain: "srinivasuniversity.edu.in",
+    type: "University", state: "Karnataka", city: "Mangaluru",
+    accred: "NAAC A", established: "2013",
+    departments: ["Engineering","Management","Commerce","Science","Computer Applications","Pharmacy","Allied Health"],
+    contacts: ["job@srinivasuniversity.edu.in"],
+    website: "https://srinivasuniversity.edu.in",
+    notes: "Private university in Mangaluru. NAAC A. Good management and tech programs."
+  },
+  {
+    id: 20, name: "RGU (Rajiv Gandhi University – Arunachal)", domain: "rgu.ac",
+    type: "University", state: "Arunachal Pradesh", city: "Itanagar",
+    accred: "NAAC A", established: "1984",
+    departments: ["Sciences","Humanities","Social Sciences","Commerce","Management","IT","Law","Education"],
+    contacts: ["careers@rgu.ac"],
+    website: "https://rgu.ac",
+    notes: "Central University. NAAC A. Key HEI in Northeast India."
+  },
+  {
+    id: 21, name: "MIT University (Moradabad)", domain: "mituniversity.edu.in",
+    type: "University", state: "Uttar Pradesh", city: "Moradabad",
+    accred: "UGC Approved", established: "2016",
+    departments: ["Engineering","Management","Computer Applications","Science","Education"],
+    contacts: ["hr.resume@mituniversity.edu.in"],
+    website: "https://mituniversity.edu.in",
+    notes: "Private university in Moradabad, UP."
+  },
+  {
+    id: 22, name: "Motherhood University", domain: "motherhooduniversity.edu.in",
+    type: "University", state: "Uttarakhand", city: "Roorkee",
+    accred: "UGC Approved", established: "2018",
+    departments: ["Nursing","Paramedical","Education","Management","Sciences","Law"],
+    contacts: ["career@motherhooduniversity.edu.in","career@mhu.edu.in"],
+    website: "https://motherhooduniversity.edu.in",
+    notes: "Focus on health sciences, nursing, and education. Private university in Uttarakhand."
+  },
+  {
+    id: 24, name: "IIM Shillong", domain: "iimshillong.ac.in",
+    type: "IIM", state: "Meghalaya", city: "Shillong",
+    accred: "AACSB / AMBA / NBA", established: "2007",
+    departments: ["MBA","Executive Education","Research"],
+    contacts: ["administration@iimshillong.ac.in"],
+    website: "https://iimshillong.ac.in",
+    notes: "Premier IIM. AACSB accredited. Only IIM in Northeast. Focus on sustainability and responsible leadership."
+  },
+  {
+    id: 25, name: "MIT-WPU Pune", domain: "mitvpu.ac.in",
+    type: "University", state: "Maharashtra", city: "Pune",
+    accred: "NAAC A+", established: "2017",
+    departments: ["Engineering","Computer Science & AI","Management","Design","Arts & Social Sciences","Biosciences","Pharmacy","Law"],
+    contacts: ["careers@mitvpu.ac.in"],
+    website: "https://mitvpu.ac.in",
+    notes: "MIT World Peace University. NAAC A+. One of Pune's top private universities. International collaborations."
+  },
+  {
+    id: 26, name: "Bahra University", domain: "bahrauniversity.edu.in",
+    type: "University", state: "Himachal Pradesh", city: "Shimla (Waknaghat)",
+    accred: "UGC Approved", established: "2012",
+    departments: ["Engineering","Management","Computer Applications","Science","Law","Education"],
+    contacts: ["careers@bahrauniversity.edu.in"],
+    website: "https://bahrauniversity.edu.in",
+    notes: "Private hill-campus university in HP."
+  },
+  {
+    id: 27, name: "GITAM (Deemed University)", domain: "gitam.edu",
+    type: "University", state: "Andhra Pradesh / Telangana / Karnataka", city: "Visakhapatnam / Hyderabad / Bengaluru",
+    accred: "NAAC A+", established: "1980",
+    departments: ["Engineering","Management","Sciences","Pharmacy","Architecture","Visual Communication","Law","Education"],
+    contacts: ["spatabal@gitam.edu"],
+    website: "https://gitam.edu",
+    notes: "Deemed university; NAAC A+. Three campuses: Vizag, Hyderabad, Bengaluru."
+  },
+  {
+    id: 28, name: "Sanskaram University", domain: "sanskaramuniversity.ac.in",
+    type: "University", state: "Uttar Pradesh", city: "Varanasi",
+    accred: "UGC Approved", established: "2015",
+    departments: ["Engineering","Management","Education","Science","Arts"],
+    contacts: ["job@sanskaramuniversity.ac.in","jobs@sanskaramuniversity.ac.in"],
+    website: "https://sanskaramuniversity.ac.in",
+    notes: "Private university in Varanasi."
+  },
+  {
+    id: 30, name: "IIM Visakhapatnam", domain: "iimv.ac.in",
+    type: "IIM", state: "Andhra Pradesh", city: "Visakhapatnam",
+    accred: "AMBA Candidate / NBA", established: "2015",
+    departments: ["MBA","Executive MBA","PhD Management","Executive Education"],
+    contacts: ["facultyrecruit2025febsrd@iimv.ac.in"],
+    website: "https://iimv.ac.in",
+    notes: "IIM Visakhapatnam. Growing IIM in AP. NBA accredited programs. Research-focus."
+  },
+  {
+    id: 31, name: "SVIMI", domain: "svimi.org",
+    type: "Institute", state: "Gujarat", city: "Ahmedabad",
+    accred: "UGC Approved", established: "2010",
+    departments: ["Management","Finance","Marketing","HR","IT"],
+    contacts: ["recruitments@svimi.org"],
+    website: "https://svimi.org",
+    notes: "Management institute in Gujarat."
+  },
+  {
+    id: 32, name: "DY Patil Akurdi, Pune", domain: "dypakurdipune.edu.in",
+    type: "Institute", state: "Maharashtra", city: "Pune (Akurdi)",
+    accred: "NAAC A", established: "2005",
+    departments: ["Engineering","Computer Science","IT","Mechanical","Civil","Electronics","MBA","MCA"],
+    contacts: ["hr@dypakurdipune.edu.in"],
+    website: "https://dypakurdipune.edu.in",
+    notes: "DY Patil Institute, Akurdi campus. NAAC A. AICTE approved. Well-known Pune engineering college."
+  },
+  {
+    id: 33, name: "DY Patil Pune (PGDMI)", domain: "dyppgdmi.ac.in",
+    type: "Institute", state: "Maharashtra", city: "Pune",
+    accred: "AICTE Approved", established: "2000",
+    departments: ["PGDM","MBA","Management","Business Analytics","Finance","Marketing","HR"],
+    contacts: ["admin@dyppgdmi.ac.in"],
+    website: "https://dyppgdmi.ac.in",
+    notes: "DY Patil PGDM Institute, Pune."
+  },
+  {
+    id: 34, name: "Parul University", domain: "paruluniversity.ac.in",
+    type: "University", state: "Gujarat", city: "Vadodara",
+    accred: "NAAC A+", established: "2015",
+    departments: ["Engineering","Management","Pharmacy","Medical","Dental","Nursing","Architecture","Design","Law","Science","Commerce"],
+    contacts: ["careers@paruluniversity.ac.in","plar@paruluniversity.ac.in"],
+    website: "https://paruluniversity.ac.in",
+    notes: "Largest private university in Gujarat. NAAC A+. Massive campus. 100+ programs."
+  },
+  {
+    id: 35, name: "PDM University", domain: "pdm.ac.in",
+    type: "University", state: "Haryana", city: "Bahadurgarh",
+    accred: "UGC Approved", established: "2016",
+    departments: ["Engineering","Management","Science","Arts","Law","Pharmacy","Education"],
+    contacts: ["jobs@pdm.ac.in"],
+    website: "https://pdm.ac.in",
+    notes: "Private university near Delhi in Haryana."
+  },
+  {
+    id: 36, name: "Chandigarh University", domain: "cumail.in",
+    type: "University", state: "Punjab / Multiple", city: "Mohali / Pan India",
+    accred: "NAAC A+", established: "2012",
+    departments: ["Engineering","Management","Law","Science","Pharmacy","Architecture","Design","Media","Education","Agriculture"],
+    contacts: ["career.lucknow@cumail.in","jobs@cumail.in","surender.sharma@cup.edu.in"],
+    website: "https://cuchd.in",
+    notes: "One of India's top-ranked private universities. QS ranked. Multiple campuses. NAAC A+."
+  },
+  {
+    id: 37, name: "Maya University", domain: "maya.edu.in",
+    type: "University", state: "Jharkhand", city: "Ranchi",
+    accred: "UGC Approved", established: "2020",
+    departments: ["Engineering","Management","Arts & Science","Education"],
+    contacts: ["cv@maya.edu.in"],
+    website: "https://maya.edu.in",
+    notes: "Newer private university in Jharkhand."
+  },
+  {
+    id: 38, name: "Sharda University Agra", domain: "agra.sharda.ac.in",
+    type: "University", state: "Uttar Pradesh", city: "Agra",
+    accred: "UGC Approved", established: "2022",
+    departments: ["Engineering","Management","Law","Medical","Sciences","Education"],
+    contacts: ["careers@agra.sharda.ac.in"],
+    website: "https://agra.sharda.ac.in",
+    notes: "Sharda University's Agra campus extension."
+  },
+  {
+    id: 39, name: "GNSU (Gujarat National Security University?)", domain: "gnsu.ac.in",
+    type: "University", state: "Gujarat", city: "Gandhinagar",
+    accred: "UGC Approved", established: "2010",
+    departments: ["Engineering","Management","Computer Science","Arts","Education","Social Sciences"],
+    contacts: ["samridhikumari@gnsu.ac.in","vc@gnsu.ac.in","hrd@gnsu.ac.in","careers@gnsu.ac.in","registrar@gnsu.ac.in"],
+    website: "https://gnsu.ac.in",
+    notes: "Multiple contacts at GNSU — VC, registrar, HRD, careers. Likely Gujarat-based private university."
+  },
+  {
+    id: 43, name: "RNBGU (RNB Global University)", domain: "rnbglobal.edu.in",
+    type: "University", state: "Rajasthan", city: "Bikaner",
+    accred: "UGC Approved", established: "2015",
+    departments: ["Engineering","Management","Computer Science","Arts & Humanities","Sciences","Law","Education"],
+    contacts: ["hrindia2@rnbglobal.edu.in","careers@rnbglobal.edu.in","hrindia1@rnbglobal.edu.in"],
+    website: "https://rnbglobal.edu.in",
+    notes: "Private university in Bikaner, Rajasthan."
+  },
+  {
+    id: 44, name: "Shobhit University", domain: "shobhituniversity.ac.in",
+    type: "University", state: "Uttar Pradesh", city: "Meerut",
+    accred: "UGC Approved", established: "2006",
+    departments: ["Engineering","Computer Science","Management","Biotechnology","Sciences","Law","Education","Journalism"],
+    contacts: ["careers@shobhituniversity.ac.in"],
+    website: "https://shobhituniversity.ac.in",
+    notes: "Deemed university in Meerut. UGC recognized."
+  },
+  {
+    id: 45, name: "Mangalayatan University", domain: "mangalayatan.ac.in",
+    type: "University", state: "Uttar Pradesh", city: "Aligarh",
+    accred: "UGC Approved", established: "2006",
+    departments: ["Engineering","Management","Education","Sciences","Arts","Computer Applications","Pharmacy"],
+    contacts: ["hrmuj@mangalayatan.ac.in","team.hr@mangalayatan.edu.in"],
+    website: "https://mangalayatan.ac.in",
+    notes: "Private university in Aligarh, UP."
+  },
+  {
+    id: 46, name: "Arka Jain University", domain: "arkajainuniversity.ac.in",
+    type: "University", state: "Jharkhand", city: "Jamshedpur",
+    accred: "UGC Approved", established: "2016",
+    departments: ["Engineering","Management","Computer Science & AI","Data Science","Nursing","Law","Education","Science"],
+    contacts: ["abhilasha.s@arkajainuniversity.ac.in","dr.angad@arkajainuniversity.ac.in","dr.pompi@arkajainuniversity.ac.in","director@arkajainuniversity.ac.in","dr.urvashi@arkajainuniversity.ac.in","career@arkajainuniversity.ac.in"],
+    website: "https://arkajainuniversity.ac.in",
+    notes: "Private university in Jamshedpur. Multiple faculty contacts. Strong CS/AI programs."
+  },
+  {
+    id: 52, name: "AKS University", domain: "aksuniversity.com",
+    type: "University", state: "Madhya Pradesh", city: "Satna",
+    accred: "UGC Approved", established: "2011",
+    departments: ["Engineering","Management","Computer Applications","Education","Agriculture","Sciences","Arts"],
+    contacts: ["hr@aksuniversity.com"],
+    website: "https://aksuniversity.com",
+    notes: "Private university in Satna, MP."
+  },
+  {
+    id: 53, name: "Swift College", domain: "swiftcollege.edu.in",
+    type: "Institute", state: "Punjab", city: "Ghudda (Bathinda)",
+    accred: "UGC Approved", established: "2008",
+    departments: ["Management","Computer Applications","Science","Arts","Commerce"],
+    contacts: ["hrd@swiftcollege.edu.in"],
+    website: "https://swiftcollege.edu.in",
+    notes: "College in Punjab."
+  },
+  {
+    id: 54, name: "PES University", domain: "pes.edu",
+    type: "University", state: "Karnataka", city: "Bengaluru",
+    accred: "NAAC A+", established: "1972",
+    departments: ["Engineering & Technology","Science","Management","Arts","Architecture","Design"],
+    contacts: ["careers@pes.edu"],
+    website: "https://pes.edu",
+    notes: "PES University, Bengaluru. NAAC A+. Excellent engineering and CS programs. Strong placements."
+  },
+  {
+    id: 55, name: "ITM University", domain: "itmuniversity.ac.in",
+    type: "University", state: "Madhya Pradesh", city: "Gwalior",
+    accred: "UGC Approved", established: "2013",
+    departments: ["Engineering","Management","Sciences","IT","Education","Arts"],
+    contacts: ["apply@itmuniversity.ac.in"],
+    website: "https://itmuniversity.ac.in",
+    notes: "ITM University in Gwalior, MP."
+  },
+  {
+    id: 56, name: "NIMS University", domain: "nimsuniversity.org",
+    type: "University", state: "Rajasthan", city: "Jaipur",
+    accred: "UGC Approved", established: "2008",
+    departments: ["Medical","Dental","Nursing","Pharmacy","Engineering","Management","Sciences","Law","Architecture"],
+    contacts: ["registrar@nimsuniversity.org","hiring23@nimsuniversity.org"],
+    website: "https://nimsuniversity.org",
+    notes: "NIMS University, Jaipur. Known for medical and health sciences."
+  },
+  {
+    id: 57, name: "Madhav University", domain: "madhavuniversity.edu.in",
+    type: "University", state: "Rajasthan", city: "Sirohi (Mount Abu area)",
+    accred: "UGC Approved", established: "2013",
+    departments: ["Engineering","Management","Sciences","Education","Arts","Social Work"],
+    contacts: ["jobsapply@madhavuniversity.edu.in"],
+    website: "https://madhavuniversity.edu.in",
+    notes: "Private university in Rajasthan near Mount Abu."
+  },
+  {
+    id: 58, name: "DY Patil Pune (Polytechnic)", domain: "dypvp.edu.in",
+    type: "Institute", state: "Maharashtra", city: "Pune",
+    accred: "AICTE Approved", established: "1990s",
+    departments: ["Mechanical","Civil","Computer Engineering","Electronics","Electrical","IT"],
+    contacts: ["info.engg@dypvp.edu.in"],
+    website: "https://dypvp.edu.in",
+    notes: "DY Patil Polytechnic, Pune."
+  },
+  {
+    id: 59, name: "JLU (Jagran Lakecity University)", domain: "jlu.edu.in",
+    type: "University", state: "Madhya Pradesh", city: "Bhopal",
+    accred: "NAAC B++", established: "2013",
+    departments: ["Engineering","Management","Law","Media","Design","Science","Arts & Humanities","Education"],
+    contacts: ["careers@jlu.edu.in"],
+    website: "https://jlu.edu.in",
+    notes: "Jagran Lakecity University, Bhopal. Media & communication focus. NAAC B++."
+  },
+  {
+    id: 60, name: "Shobhit Polytechnic (SSPU)", domain: "sspu.co.in",
+    type: "Institute", state: "Uttar Pradesh", city: "Meerut",
+    accred: "AICTE Approved", established: "2010",
+    departments: ["Mechanical","Computer Engineering","Electronics","Civil","IT"],
+    contacts: ["sspujobs@sspu.co.in"],
+    website: "https://sspu.co.in",
+    notes: "Polytechnic in Meerut, UP."
+  },
+  {
+    id: 61, name: "JNU Jaipur", domain: "jnujaipur.ac.in",
+    type: "University", state: "Rajasthan", city: "Jaipur",
+    accred: "UGC Approved", established: "2013",
+    departments: ["Engineering","Management","Pharmacy","Science","Architecture","Education","Law"],
+    contacts: ["info@jnujaipur.ac.in"],
+    website: "https://jnujaipur.ac.in",
+    notes: "Jagan Nath University, Jaipur. Not related to JNU Delhi."
+  },
+  {
+    id: 62, name: "SRU (Shri Rawatpura Sarkar University)", domain: "sru.edu.in",
+    type: "University", state: "Chhattisgarh", city: "Raipur",
+    accred: "UGC Approved", established: "2018",
+    departments: ["Engineering","Management","Sciences","Arts","Law","Pharmacy"],
+    contacts: ["info@sru.edu.in"],
+    website: "https://sru.edu.in",
+    notes: "Private university in Chhattisgarh."
+  },
+  {
+    id: 63, name: "Nirwan University", domain: "nirwanuniversity.ac.in",
+    type: "University", state: "Rajasthan", city: "Jaipur",
+    accred: "UGC Approved", established: "2019",
+    departments: ["Engineering","Management","Pharmacy","Science","Nursing","Computer Applications"],
+    contacts: ["hr@nirwanuniversity.ac.in"],
+    website: "https://nirwanuniversity.ac.in",
+    notes: "Private university in Jaipur."
+  },
+  {
+    id: 65, name: "IBS Jaipur (ICFAI Business School)", domain: "ibsindia.org",
+    type: "Institute", state: "Rajasthan", city: "Jaipur",
+    accred: "AICTE Approved", established: "1995",
+    departments: ["MBA","Finance","Marketing","HR","Operations","Business Analytics"],
+    contacts: ["ibsjaipur@ibsindia.org"],
+    website: "https://ibsindia.org/jaipur",
+    notes: "ICFAI Business School. Reputed MBA institution. Case-based learning."
+  },
+  {
+    id: 66, name: "KIIT (Kalinga Institute)", domain: "kiit.ac.in",
+    type: "University", state: "Odisha", city: "Bhubaneswar",
+    accred: "NAAC A+", established: "1992",
+    departments: ["Engineering","Management","Law","Medical","Dental","Nursing","Architecture","Education","Social Sciences","Film & Media"],
+    contacts: ["recruitment.2024@kiit.ac.in"],
+    website: "https://kiit.ac.in",
+    notes: "KIIT Deemed University. NAAC A+. One of India's premier technical institutions."
+  },
+  {
+    id: 67, name: "Pratap University", domain: "pratapuniversity.in",
+    type: "University", state: "Rajasthan", city: "Jaipur",
+    accred: "UGC Approved", established: "2016",
+    departments: ["Engineering","Computer Science","Management","Science","Arts","Education"],
+    contacts: ["hr@pratapuniversity.in"],
+    website: "https://pratapuniversity.in",
+    notes: "Private university in Jaipur."
+  },
+  {
+    id: 68, name: "TMU (Teerthanker Mahaveer University)", domain: "tmu.ac.in",
+    type: "University", state: "Uttar Pradesh", city: "Moradabad",
+    accred: "NAAC A+", established: "2008",
+    departments: ["Medical","Dental","Pharmacy","Nursing","Engineering","Management","Law","Education","Sciences"],
+    contacts: ["hr@tmu.ac.in"],
+    website: "https://tmu.ac.in",
+    notes: "NAAC A+. Strong medical & pharmacy programs. Large campus in Moradabad."
+  },
+  {
+    id: 69, name: "MMU (Maharishi Markandeshwar University)", domain: "mmumullana.org",
+    type: "University", state: "Haryana", city: "Ambala (Mullana)",
+    accred: "NAAC A+", established: "1993",
+    departments: ["Engineering","Management","Medical","Pharmacy","Sciences","Arts","Architecture","Ayurveda"],
+    contacts: ["career@mmumullana.org","info@mmumullana.org"],
+    website: "https://mmumullana.org",
+    notes: "Deemed university. NAAC A+. Extensive medical and health sciences programs."
+  },
+  {
+    id: 71, name: "Mangalmay Institute", domain: "mangalmay.org",
+    type: "Institute", state: "Uttar Pradesh", city: "Greater Noida",
+    accred: "AICTE Approved", established: "2007",
+    departments: ["Engineering","MBA","MCA","Computer Science","Management"],
+    contacts: ["hr@mangalmay.org","info@mangalmay.org"],
+    website: "https://mangalmay.org",
+    notes: "Engineering and management institute in Greater Noida."
+  },
+  {
+    id: 73, name: "AISECT University (Jharkhand)", domain: "aisectuniversityjharkhand.ac.in",
+    type: "University", state: "Jharkhand", city: "Hazaribagh",
+    accred: "UGC Approved", established: "2013",
+    departments: ["Engineering","Computer Applications","Management","Sciences","Education","Arts"],
+    contacts: ["info@aisectuniversityjharkhand.ac.in"],
+    website: "https://aisectuniversityjharkhand.ac.in",
+    notes: "Private university in Jharkhand."
+  },
+  {
+    id: 74, name: "Vivek College", domain: "vivekcollege.ac.in",
+    type: "Institute", state: "Uttar Pradesh", city: "Bijnor",
+    accred: "UGC Approved", established: "2005",
+    departments: ["Arts","Science","Commerce","Management","Computer Applications"],
+    contacts: ["jobs@vivekcollege.ac.in"],
+    website: "https://vivekcollege.ac.in",
+    notes: "Degree college in Bijnor, UP."
+  },
+  {
+    id: 75, name: "BGU (Barkatullah Global University)", domain: "bgu.ac.in",
+    type: "University", state: "Rajasthan", city: "Jaipur",
+    accred: "UGC Approved", established: "2018",
+    departments: ["Engineering","Management","Sciences","Arts","Education"],
+    contacts: ["career@bgu.ac.in"],
+    website: "https://bgu.ac.in",
+    notes: "Private university in Jaipur."
+  },
+  {
+    id: 77, name: "KR Mangalam University", domain: "krmangalam.edu.in",
+    type: "University", state: "Haryana", city: "Gurugram",
+    accred: "NAAC B+", established: "2013",
+    departments: ["Engineering","Management","Computer Science","Law","Science","Education","Architecture"],
+    contacts: ["krmujobs@krmangalam.edu.in"],
+    website: "https://krmangalam.edu.in",
+    notes: "Private university near Delhi in Gurugram."
+  },
+  {
+    id: 78, name: "Raffles University", domain: "rafflesuniversity.edu.in",
+    type: "University", state: "Rajasthan", city: "Neemrana",
+    accred: "UGC Approved", established: "2011",
+    departments: ["Engineering","Management","Sciences","Architecture","Design","Pharmacy","Education"],
+    contacts: ["jobs@rafflesuniversity.edu.in"],
+    website: "https://rafflesuniversity.edu.in",
+    notes: "Private university on Delhi-Jaipur highway in Neemrana."
+  },
+  {
+    id: 80, name: "Srinathji Institute", domain: "srinathjiinstitute.com",
+    type: "Institute", state: "Rajasthan", city: "Nathdwara",
+    accred: "UGC Approved", established: "2010",
+    departments: ["Management","Commerce","Computer Applications","Arts"],
+    contacts: ["hiring@srinathjiinstitute.com"],
+    website: "https://srinathjiinstitute.com",
+    notes: "Institute in Nathdwara, Rajasthan."
+  },
+  {
+    id: 81, name: "Sandip Foundation", domain: "sandipfoundation.org",
+    type: "Institute", state: "Maharashtra", city: "Nashik",
+    accred: "NAAC", established: "2001",
+    departments: ["Engineering","Management","Pharmacy","Sciences","Education"],
+    contacts: ["hr@sandipfoundation.org"],
+    website: "https://sandipfoundation.org",
+    notes: "Parent organization of Sandip University. Also runs standalone institutes."
+  },
+  {
+    id: 83, name: "Capital University", domain: "capitaluniversity.edu.in",
+    type: "University", state: "Jharkhand", city: "Koderma",
+    accred: "UGC Approved", established: "2016",
+    departments: ["Engineering","Management","Sciences","Arts","Education","Computer Applications"],
+    contacts: ["info@capitaluniversity.edu.in"],
+    website: "https://capitaluniversity.edu.in",
+    notes: "Private university in Jharkhand."
+  },
+  {
+    id: 84, name: "KK University", domain: "kkuniversity.ac.in",
+    type: "University", state: "Bihar", city: "Nalanda",
+    accred: "UGC Approved", established: "2014",
+    departments: ["Engineering","Computer Science","Management","Sciences","Education","Arts"],
+    contacts: ["info@kkuniversity.ac.in","careers@kkuniversity.ac.in"],
+    website: "https://kkuniversity.ac.in",
+    notes: "Private university in Nalanda, Bihar."
+  },
+  {
+    id: 85, name: "JRU (Jharkhand Rai University)", domain: "jru.edu.in",
+    type: "University", state: "Jharkhand", city: "Ranchi",
+    accred: "UGC Approved", established: "2012",
+    departments: ["Engineering","Management","Sciences","Arts","Education","Law","Pharmacy"],
+    contacts: ["info@jru.edu.in"],
+    website: "https://jru.edu.in",
+    notes: "Private university in Ranchi."
+  },
+  {
+    id: 86, name: "RGU (Rajiv Gandhi University – Odisha)", domain: "rguniversity.org",
+    type: "University", state: "Odisha", city: "Bhubaneswar",
+    accred: "UGC Approved", established: "2018",
+    departments: ["Management","Computer Applications","Sciences","Arts"],
+    contacts: ["info@rguniversity.org"],
+    website: "https://rguniversity.org",
+    notes: "Private university in Odisha (different from Central Univ RGU)."
+  },
+  {
+    id: 87, name: "RKDF University", domain: "rkdfuniversity.org",
+    type: "University", state: "Madhya Pradesh / Jharkhand", city: "Bhopal / Ranchi",
+    accred: "UGC Approved", established: "2012",
+    departments: ["Engineering","Management","Sciences","Pharmacy","Education","Arts","Law"],
+    contacts: ["info@rkdfuniversity.org"],
+    website: "https://rkdfuniversity.org",
+    notes: "Multiple campuses. MP and Jharkhand."
+  },
+  {
+    id: 88, name: "RCU (Rajeev Gandhi University – Chhattisgarh)", domain: "rcu.edu.in",
+    type: "University", state: "Chhattisgarh", city: "Bhilai",
+    accred: "UGC Approved", established: "2016",
+    departments: ["Engineering","Management","Sciences","Education"],
+    contacts: ["info@rcu.edu.in"],
+    website: "https://rcu.edu.in",
+    notes: "Private university in Chhattisgarh."
+  },
+  {
+    id: 90, name: "SB Ranchi University", domain: "sburanchi.ac.in",
+    type: "University", state: "Jharkhand", city: "Ranchi",
+    accred: "UGC Approved", established: "2015",
+    departments: ["Sciences","Arts","Commerce","Education","Computer Applications"],
+    contacts: ["info@sburanchi.ac.in"],
+    website: "https://sburanchi.ac.in",
+    notes: "Private university in Ranchi."
+  },
+  {
+    id: 91, name: "IU Jharkhand (Jharkhand Technology University / IIMT)", domain: "iujharkhand.edu.in",
+    type: "University", state: "Jharkhand", city: "Ranchi",
+    accred: "UGC Approved", established: "2013",
+    departments: ["Engineering","Computer Science","Management","Sciences","Education","Pharmacy","Law"],
+    contacts: ["info@iujharkhand.edu.in","careers@iujharkhand.edu.in","dean.academics@iujharkhand.edu.in"],
+    website: "https://iujharkhand.edu.in",
+    notes: "Private university in Jharkhand. Three contacts including Dean Academics."
+  },
+  {
+    id: 93, name: "Usha Martin University", domain: "ushamartinuniversity.com",
+    type: "University", state: "Jharkhand", city: "Ranchi",
+    accred: "UGC Approved", established: "2018",
+    departments: ["Engineering","Management","Sciences","Computer Applications","Education"],
+    contacts: ["info@ushamartinuniversity.com"],
+    website: "https://ushamartinuniversity.com",
+    notes: "University affiliated with Usha Martin Group, Ranchi."
+  },
+  {
+    id: 94, name: "UMU (Uttara Mysore University / Mysuru)", domain: "umu.ac.in",
+    type: "University", state: "Karnataka", city: "Mysuru",
+    accred: "UGC Approved", established: "2020",
+    departments: ["Sciences","Arts","Commerce","Management","Education"],
+    contacts: ["careers@umu.ac.in"],
+    website: "https://umu.ac.in",
+    notes: "Private university in Mysuru."
+  },
+  {
+    id: 95, name: "YBN University", domain: "ybnuniversity.in",
+    type: "University", state: "Jharkhand", city: "Ranchi",
+    accred: "UGC Approved", established: "2015",
+    departments: ["Engineering","Management","Computer Science","Sciences","Arts","Law","Education"],
+    contacts: ["info@ybnuniversity.in"],
+    website: "https://ybnuniversity.in",
+    notes: "Private university in Ranchi."
+  },
+  {
+    id: 97, name: "CVRU (Chandigarh Vidya Rakshan University – Bihar)", domain: "cvrubihar.ac.in",
+    type: "University", state: "Bihar", city: "Kaimur",
+    accred: "UGC Approved", established: "2017",
+    departments: ["Engineering","Management","Sciences","Arts","Education"],
+    contacts: ["info@cvrubihar.ac.in"],
+    website: "https://cvrubihar.ac.in",
+    notes: "Private university in Bihar."
+  },
+  {
+    id: 99, name: "GNIOT (Greater Noida Institute of Technology)", domain: "gniot.net.in",
+    type: "Institute", state: "Uttar Pradesh", city: "Greater Noida",
+    accred: "AICTE / NAAC", established: "2001",
+    departments: ["Computer Science","IT","ECE","Mechanical","Civil","MBA","MCA"],
+    contacts: ["hr@gniot.net.in"],
+    website: "https://gniot.net.in",
+    notes: "Engineering & management institute in Greater Noida."
+  },
+  {
+    id: 100, name: "Galgotia College", domain: "galgotiacollege.edu",
+    type: "Institute", state: "Uttar Pradesh", city: "Greater Noida",
+    accred: "NAAC A", established: "2000",
+    departments: ["Computer Science","IT","ECE","Mechanical","Civil","Management"],
+    contacts: ["careers@galgotiacollege.edu"],
+    website: "https://galgotiacollege.edu",
+    notes: "Part of Galgotias group. NAAC A. Well-known engineering college."
+  },
+  {
+    id: 101, name: "CGC (Chandigarh College of Engineering)", domain: "cgc.edu.in",
+    type: "Institute", state: "Punjab", city: "Mohali",
+    accred: "NAAC A", established: "2008",
+    departments: ["Computer Science","ECE","EEE","Mechanical","Civil","IT","MBA","MCA"],
+    contacts: ["hr@cgc.edu.in"],
+    website: "https://cgc.edu.in",
+    notes: "NAAC A. Leading engineering college in Tricity (Chandigarh area)."
+  },
+  {
+    id: 102, name: "GIT (Global Institute of Technology)", domain: "git.org.in",
+    type: "Institute", state: "Rajasthan", city: "Jaipur",
+    accred: "NAAC B+", established: "2001",
+    departments: ["Engineering","Computer Science","ECE","Mechanical","Civil","Management"],
+    contacts: ["director@git.org.in"],
+    website: "https://git.org.in",
+    notes: "Engineering institute in Jaipur."
+  },
+  {
+    id: 103, name: "DIT University", domain: "dituniversity.edu.in",
+    type: "University", state: "Uttarakhand", city: "Dehradun",
+    accred: "NAAC B++", established: "2013",
+    departments: ["Engineering","Computer Science","Management","Sciences","Architecture","Design"],
+    contacts: ["careers@dituniversity.edu.in"],
+    website: "https://dituniversity.edu.in",
+    notes: "DIT University, Dehradun. NAAC B++."
+  },
+  {
+    id: 104, name: "MIET (Meerut Institute of Engineering & Technology)", domain: "miet.ac.in",
+    type: "Institute", state: "Uttar Pradesh", city: "Meerut",
+    accred: "NAAC A", established: "2000",
+    departments: ["Computer Science","IT","ECE","EEE","Mechanical","Civil","Architecture","MBA","MCA"],
+    contacts: ["careers@miet.ac.in","contact@miet.ac.in","support@miet.ac.in"],
+    website: "https://miet.ac.in",
+    notes: "Large engineering institute in Meerut. NAAC A. AICTE approved."
+  },
+  {
+    id: 106, name: "Chandigarh University (Jaipur/Lucknow contact)", domain: "cumail.in",
+    type: "University", state: "Punjab", city: "Mohali",
+    accred: "NAAC A+", established: "2012",
+    departments: ["Engineering","Management","Law","Sciences","Design","Pharmacy"],
+    contacts: ["jobs@cumail.in"],
+    website: "https://cuchd.in",
+    notes: "Second contact entry for Chandigarh University."
+  },
+  {
+    id: 107, name: "JIET Jodhpur", domain: "jietjodhpur.ac.in",
+    type: "Institute", state: "Rajasthan", city: "Jodhpur",
+    accred: "NAAC B+", established: "2001",
+    departments: ["Computer Science","ECE","Mechanical","Civil","IT","Management","MCA"],
+    contacts: ["info@jietjodhpur.ac.in"],
+    website: "https://jietjodhpur.ac.in",
+    notes: "Reputed engineering institute in Jodhpur."
+  },
+  {
+    id: 108, name: "KIT (Kanpur Institute of Technology)", domain: "kit.ac.in",
+    type: "Institute", state: "Uttar Pradesh", city: "Kanpur",
+    accred: "AICTE Approved", established: "2002",
+    departments: ["Computer Science","IT","ECE","EEE","Mechanical","Civil","MBA"],
+    contacts: ["hr@kit.ac.in"],
+    website: "https://kit.ac.in",
+    notes: "Engineering institute in Kanpur."
+  },
+  {
+    id: 109, name: "Amity University", domain: "a9sn.amity.edu",
+    type: "University", state: "Uttar Pradesh / Multiple", city: "Noida / Pan India",
+    accred: "NAAC A+", established: "2005",
+    departments: ["Engineering","Management","Law","Sciences","Journalism","Fine Arts","Education","Film","Design","Medical"],
+    contacts: ["hr@a9sn.amity.edu","hr@ags.amity.edu"],
+    website: "https://amity.edu",
+    notes: "Amity University – one of India's largest private university groups. NAAC A+. Pan-India campuses."
+  },
+  {
+    id: 110, name: "GD Goenka University (Jhajjar)", domain: "gdgoenkajhajjar.com",
+    type: "University", state: "Haryana", city: "Jhajjar",
+    accred: "UGC Approved", established: "2013",
+    departments: ["Engineering","Management","Sciences","Law","Architecture","Education","Design"],
+    contacts: ["director@gdgoenkajhajjar.com"],
+    website: "https://gdgoenka.ac.in",
+    notes: "GD Goenka University Jhajjar campus."
+  },
+  {
+    id: 111, name: "SVVV University", domain: "svvv.edu.in",
+    type: "University", state: "Madhya Pradesh", city: "Indore",
+    accred: "NAAC A", established: "2009",
+    departments: ["Engineering","Computer Science","Management","Sciences","Design","Arts"],
+    contacts: ["careers@svvv.edu.in"],
+    website: "https://svvv.edu.in",
+    notes: "Shri Vaishnav Vidyapeeth Vishwavidyalaya, Indore. NAAC A."
+  },
+  {
+    id: 116, name: "GLA University", domain: "gla.ac.in",
+    type: "University", state: "Uttar Pradesh", city: "Mathura",
+    accred: "NAAC A+", established: "1996",
+    departments: ["Engineering","Computer Science","Management","Pharmacy","Sciences","Education","Commerce","Law"],
+    contacts: ["glauniversity@gla.ac.in","career@gla.ac.in","sharad.garg@gla.ac.in"],
+    website: "https://gla.ac.in",
+    notes: "GLA University, Mathura. NAAC A+. Strong engineering and management."
+  },
+  {
+    id: 117, name: "Poornima University", domain: "poornima.org",
+    type: "University", state: "Rajasthan", city: "Jaipur",
+    accred: "NAAC A", established: "2012",
+    departments: ["Engineering","Computer Science","Management","Architecture","Design","Sciences","Commerce"],
+    contacts: ["jobs@poornima.org"],
+    website: "https://poornima.org",
+    notes: "Poornima University, Jaipur. NAAC A. Good design and architecture programs."
+  },
+  {
+    id: 121, name: "Jaipuria Institute of Management", domain: "jaipuria.ac.in",
+    type: "Institute", state: "Uttar Pradesh / Rajasthan / MP", city: "Noida / Jaipur / Indore / Lucknow",
+    accred: "NAAC A", established: "1995",
+    departments: ["MBA","Executive MBA","PGDM","Business Analytics","Finance","Marketing","HR"],
+    contacts: ["Jaipur@jaipuria.ac.in"],
+    website: "https://jaipuria.ac.in",
+    notes: "Jaipuria Group of Institutions. NAAC A. Multiple campus MBA programs. Well-regarded B-school."
+  },
+  {
+    id: 122, name: "GL Bajaj Group", domain: "glbajajgroup.org",
+    type: "Institute", state: "Uttar Pradesh", city: "Greater Noida / Mathura",
+    accred: "NAAC A", established: "2003",
+    departments: ["Computer Science","ECE","Mechanical","Civil","IT","MBA","MCA"],
+    contacts: ["careers@glbajajgroup.org"],
+    website: "https://glbajajgroup.org",
+    notes: "GL Bajaj Group of Institutions. NAAC A. Multiple campuses in UP."
+  },
+  {
+    id: 125, name: "KCC Institute of Technology & Management", domain: "kccitm.edu.in",
+    type: "Institute", state: "Uttar Pradesh", city: "Greater Noida",
+    accred: "AICTE Approved", established: "2008",
+    departments: ["Computer Science","IT","ECE","Mechanical","Civil","MBA","MCA"],
+    contacts: ["careers@kccitm.edu.in"],
+    website: "https://kccitm.edu.in",
+    notes: "Engineering and management institute in Greater Noida."
+  },
+  {
+    id: 127, name: "BK Birla Institute of Engineering & Technology", domain: "bkbiet.ac.in",
+    type: "Institute", state: "Rajasthan", city: "Pilani",
+    accred: "NAAC", established: "2004",
+    departments: ["Computer Science","ECE","EEE","Mechanical","Civil","IT","MBA"],
+    contacts: ["recruitments@bkbiet.ac.in"],
+    website: "https://bkbiet.ac.in",
+    notes: "Engineering institute in Pilani, Rajasthan. Near BITS Pilani."
+  },
+  {
+    id: 131, name: "RNBGU (Careers)", domain: "rnbglobal.edu.in",
+    type: "University", state: "Rajasthan", city: "Bikaner",
+    accred: "UGC Approved", established: "2015",
+    departments: ["Engineering","Management","Computer Science","Arts","Sciences","Law"],
+    contacts: ["careers@rnbglobal.edu.in"],
+    website: "https://rnbglobal.edu.in",
+    notes: "See RNBGU entry #43."
+  },
+  {
+    id: 134, name: "IMS Noida", domain: "imsnoida.com",
+    type: "Institute", state: "Uttar Pradesh", city: "Noida",
+    accred: "NAAC A", established: "2006",
+    departments: ["BCA","MCA","BBA","MBA","B.Com","M.Com","BSc IT"],
+    contacts: ["hr@imsnoida.com"],
+    website: "https://imsnoida.com",
+    notes: "IMS (Institute of Management Studies) Noida. NAAC A. Known for MCA/BCA programs."
+  },
+  {
+    id: 138, name: "Rama University", domain: "ramauniversity.ac.in",
+    type: "University", state: "Uttar Pradesh", city: "Kanpur",
+    accred: "NAAC B++", established: "2014",
+    departments: ["Medical","Dental","Pharmacy","Nursing","Engineering","Management","Sciences","Law","Agriculture"],
+    contacts: ["hr.ru@ramauniversity.ac.in"],
+    website: "https://ramauniversity.ac.in",
+    notes: "Medical-focus private university in Kanpur. NAAC B++."
+  },
+  {
+    id: 144, name: "Atlas SkillTech University", domain: "atlasuniversity.edu.in",
+    type: "University", state: "Maharashtra", city: "Mumbai",
+    accred: "UGC Approved", established: "2020",
+    departments: ["Technology","Design","Management","Media","Creative Arts","Liberal Arts"],
+    contacts: ["careers@atlasuniversity.edu.in"],
+    website: "https://atlasuniversity.edu.in",
+    notes: "New-age skill-focused private university in Mumbai. Design and tech-forward."
+  },
+  {
+    id: 145, name: "GNITI Pune", domain: "gnitipu.in",
+    type: "Institute", state: "Maharashtra", city: "Pune",
+    accred: "AICTE Approved", established: "2010",
+    departments: ["Mechanical","Computer Engineering","Civil","Electronics","MBA"],
+    contacts: ["hr@gnitipu.in"],
+    website: "https://gnitipu.in",
+    notes: "Polytechnic / engineering institute in Pune."
+  },
+  {
+    id: 149, name: "PSIT (Pranveer Singh Institute of Technology)", domain: "psit.in",
+    type: "Institute", state: "Uttar Pradesh", city: "Kanpur",
+    accred: "NAAC A", established: "2004",
+    departments: ["Computer Science","IT","ECE","EEE","Mechanical","Civil","MBA","MCA"],
+    contacts: ["careers@psit.in"],
+    website: "https://psit.in",
+    notes: "NAAC A autonomous institute in Kanpur. Strong engineering programs."
+  },
+  {
+    id: 150, name: "Alliance University", domain: "alliance.edu.in",
+    type: "University", state: "Karnataka", city: "Bengaluru",
+    accred: "NAAC A+", established: "2010",
+    departments: ["Management","Engineering","Law","Liberal Studies","Design","Sciences"],
+    contacts: ["careers@alliance.edu.in"],
+    website: "https://alliance.edu.in",
+    notes: "NAAC A+. Alliance University, Bengaluru. Well-regarded law and management school."
+  },
+  {
+    id: 155, name: "Quantum University", domain: "quantumuniversity.edu.in",
+    type: "University", state: "Uttarakhand", city: "Roorkee",
+    accred: "NAAC B++", established: "2017",
+    departments: ["Engineering","Computer Science","Management","Sciences","Architecture","Education"],
+    contacts: ["careers@quantumuniversity.edu.in"],
+    website: "https://quantumuniversity.edu.in",
+    notes: "Private university in Roorkee, Uttarakhand. Near IIT Roorkee area."
+  },
+  {
+    id: 158, name: "Sanskriti University", domain: "sanskriti.edu.in",
+    type: "University", state: "Uttar Pradesh", city: "Mathura",
+    accred: "UGC Approved", established: "2016",
+    departments: ["Engineering","Computer Science","Management","Sciences","Arts","Education","Pharmacy"],
+    contacts: ["hr@sanskriti.edu.in"],
+    website: "https://sanskriti.edu.in",
+    notes: "Private university in Mathura, UP."
+  },
+  {
+    id: 159, name: "IIIT Vadodara", domain: "iiitvadodara.ac.in",
+    type: "NIT/IIIT", state: "Gujarat", city: "Vadodara",
+    accred: "NBA / NIRF Ranked", established: "2013",
+    departments: ["Computer Science & Engineering","IT","Mathematics & Computing","Electronic Systems","Data Science"],
+    contacts: ["facultysearch@iiitvadodara.ac.in"],
+    website: "https://iiitvadodara.ac.in",
+    notes: "Government IIIT. Excellent research focus in CS/IT. Ministry of Education institute."
+  },
+  {
+    id: 160, name: "Manipal University", domain: "manipal.edu",
+    type: "University", state: "Karnataka / Multiple", city: "Manipal / Pan India",
+    accred: "NAAC A+", established: "1953",
+    departments: ["Engineering","Medical","Architecture","Management","Communication","Sciences","Allied Health","Pharmacy","Humanities"],
+    contacts: ["jobs@manipal.edu"],
+    website: "https://manipal.edu",
+    notes: "One of India's most prestigious private universities. NAAC A+. International campuses."
+  },
+  {
+    id: 161, name: "NIT Kurukshetra", domain: "nitkkr.ac.in",
+    type: "NIT/IIIT", state: "Haryana", city: "Kurukshetra",
+    accred: "NBA / NAAC A / NIRF Ranked", established: "1963",
+    departments: ["Computer Engineering","IT","ECE","EEE","Mechanical","Civil","Chemical","Mathematics","Physics","Chemistry","MBA","MCA"],
+    contacts: ["recruitment@nitkkr.ac.in"],
+    website: "https://nitkkr.ac.in",
+    notes: "Government NIT. One of India's premier technical institutions. NIRF top-ranked."
+  },
+  {
+    id: 162, name: "Galgotias University", domain: "galgotiasuniversity.edu.in",
+    type: "University", state: "Uttar Pradesh", city: "Greater Noida",
+    accred: "NAAC A+", established: "2011",
+    departments: ["Engineering","Computer Science","IT","AI/ML","Management","Law","Sciences","Education","Architecture","Allied Health"],
+    contacts: ["recruitments@galgotiasuniversity.edu.in"],
+    website: "https://galgotiasuniversity.edu.in",
+    notes: "NAAC A+. Large private university. Strong placement record."
+  },
+  {
+    id: 163, name: "OPJU (Odisha Petroleum University)", domain: "opju.ac.in",
+    type: "University", state: "Odisha", city: "Rourkela",
+    accred: "UGC Approved", established: "2016",
+    departments: ["Petroleum Engineering","Chemical Engineering","Computer Science","Management","Sciences"],
+    contacts: ["hr@opju.ac.in"],
+    website: "https://opju.ac.in",
+    notes: "Specialty university focused on petroleum and chemical engineering."
+  },
+  {
+    id: 169, name: "Bennett University", domain: "bennett.edu.in",
+    type: "University", state: "Uttar Pradesh", city: "Greater Noida",
+    accred: "NAAC A", established: "2016",
+    departments: ["Engineering","Computer Science","AI/ML","Management","Law","Media","Sciences"],
+    contacts: ["recruitment.som@bennett.edu.in","career.som@bennett.edu.in"],
+    website: "https://bennett.edu.in",
+    notes: "Bennett University (Times of India Group). NAAC A. Strong media and tech programs."
+  },
+  {
+    id: 170, name: "VIT AP", domain: "vitap.ac.in",
+    type: "University", state: "Andhra Pradesh", city: "Amaravati",
+    accred: "NAAC A+", established: "2017",
+    departments: ["Engineering","Computer Science","AI","Data Science","ECE","Mechanical","Civil","Management","Sciences"],
+    contacts: ["aphr@vitap.ac.in"],
+    website: "https://vitap.ac.in",
+    notes: "VIT Andhra Pradesh campus. NAAC A+. Part of VIT Group."
+  },
+  {
+    id: 172, name: "SASTRA Deemed University", domain: "sastra.edu",
+    type: "University", state: "Tamil Nadu", city: "Thanjavur",
+    accred: "NAAC A+", established: "1984",
+    departments: ["Engineering","Computer Science","Management","Sciences","Law","Arts","Pharmacy","Architecture"],
+    contacts: ["newsonfaculty@sastra.edu"],
+    website: "https://sastra.edu",
+    notes: "SASTRA Deemed University. NAAC A+. Excellent faculty. Top NIRF rankings."
+  },
+  {
+    id: 175, name: "Sunrise University", domain: "sunriseuniversity.in",
+    type: "University", state: "Rajasthan", city: "Alwar",
+    accred: "UGC Approved", established: "2011",
+    departments: ["Engineering","Management","Sciences","Arts","Pharmacy","Education","Law"],
+    contacts: ["registrar@sunriseuniversity.in"],
+    website: "https://sunriseuniversity.in",
+    notes: "Private university in Alwar, Rajasthan."
+  },
+  {
+    id: 178, name: "BMU (Bharati Vidyapeeth – Sonipat)", domain: "bmu.edu.in",
+    type: "University", state: "Haryana", city: "Sonipat",
+    accred: "UGC Approved", established: "2017",
+    departments: ["Engineering","Management","Law","Sciences","Arts","Pharmacy","Design"],
+    contacts: ["careers@bmu.edu.in","info@bmu.edu.in","hiring.som@bmu.edu.in"],
+    website: "https://bmu.edu.in",
+    notes: "B.M. University (not Bharati Vidyapeeth Pune). Haryana-based university."
+  },
+  {
+    id: 181, name: "Prestige University", domain: "prestige.ac.in",
+    type: "University", state: "Madhya Pradesh", city: "Indore",
+    accred: "UGC Approved", established: "2020",
+    departments: ["Engineering","Computer Science","Management","Sciences","Design"],
+    contacts: ["careers@prestige.ac.in"],
+    website: "https://prestige.ac.in",
+    notes: "Newer private university in Indore."
+  },
+  {
+    id: 184, name: "Karpagam University", domain: "karpagam.com",
+    type: "University", state: "Tamil Nadu", city: "Coimbatore",
+    accred: "NAAC A", established: "2008",
+    departments: ["Engineering","Computer Science","Management","Sciences","Architecture","Design","Arts"],
+    contacts: ["hrd@karpagam.com"],
+    website: "https://karpagam.com",
+    notes: "Karpagam Academy of Higher Education (Deemed University). NAAC A. Coimbatore."
+  },
+  {
+    id: 188, name: "PIBM (Pune Institute of Business & Management)", domain: "pibm.in",
+    type: "Institute", state: "Maharashtra", city: "Pune",
+    accred: "AICTE Approved", established: "2007",
+    departments: ["MBA","PGDM","Marketing","Finance","HR","Operations","Business Analytics","International Business"],
+    contacts: ["careers@pibm.in"],
+    website: "https://pibm.in",
+    notes: "Top MBA institute in Pune. AICTE. Strong placement record. International tie-ups."
+  },
+  {
+    id: 193, name: "University of Udaipur", domain: "uumail.in",
+    type: "University", state: "Rajasthan", city: "Udaipur",
+    accred: "UGC Approved", established: "2014",
+    departments: ["Engineering","Management","Sciences","Arts","Education","Commerce"],
+    contacts: ["career@uumail.in"],
+    website: "https://uumail.in",
+    notes: "Private university in Udaipur, Rajasthan."
+  },
+  {
+    id: 201, name: "IIM Mumbai", domain: "iimmumbai.ac.in",
+    type: "IIM", state: "Maharashtra", city: "Mumbai (Navi Mumbai)",
+    accred: "AMBA / NBA", established: "2021",
+    departments: ["MBA","Executive Education","Finance","Marketing","Strategy","Operations","HR"],
+    contacts: ["admin.fa@iimmumbai.ac.in"],
+    website: "https://iimmumbai.ac.in",
+    notes: "Newest IIM. Located in Navi Mumbai. Launched in 2021."
+  },
+  {
+    id: 210, name: "UEM University (Jaipur)", domain: "uem.edu.in",
+    type: "University", state: "Rajasthan", city: "Jaipur",
+    accred: "UGC Approved", established: "2018",
+    departments: ["Engineering","Computer Science","Management","Sciences","Arts","Design"],
+    contacts: ["jobs.jaipur@uem.edu.in"],
+    website: "https://uem.edu.in",
+    notes: "University of Engineering & Management, Jaipur campus."
+  },
+  {
+    id: 213, name: "JIMS (Jagannath International Management School)", domain: "jimsindia.org",
+    type: "Institute", state: "Delhi", city: "New Delhi",
+    accred: "NAAC A", established: "1993",
+    departments: ["MBA","PGDM","BBA","BCA","MCA","Finance","Marketing","HR"],
+    contacts: ["recruitment@jimsindia.org"],
+    website: "https://jimsindia.org",
+    notes: "NAAC A. Well-known management institute in Delhi."
+  },
+  {
+    id: 217, name: "Lingayas Vidyapeeth", domain: "lingayasvidyapeeth.edu.in",
+    type: "University", state: "Haryana", city: "Faridabad",
+    accred: "NAAC B++", established: "2009",
+    departments: ["Engineering","Computer Science","Management","Sciences","Architecture","Education","Pharmacy"],
+    contacts: ["recruitment@lingayasvidyapeeth.edu.in"],
+    website: "https://lingayasvidyapeeth.edu.in",
+    notes: "Deemed university in Faridabad, Haryana."
+  },
+  {
+    id: 218, name: "The Glocal University", domain: "theglocaluniversity.in",
+    type: "University", state: "Uttar Pradesh", city: "Saharanpur",
+    accred: "UGC Approved", established: "2015",
+    departments: ["Engineering","Management","Sciences","Arts","Education","Pharmacy","Nursing"],
+    contacts: ["hr@theglocaluniversity.in"],
+    website: "https://theglocaluniversity.in",
+    notes: "Private university in Saharanpur."
+  },
+  {
+    id: 219, name: "Noble University", domain: "nobleuniversity.ac.in",
+    type: "University", state: "Rajasthan", city: "Jodhpur",
+    accred: "UGC Approved", established: "2017",
+    departments: ["Engineering","Management","Sciences","Arts","Agriculture","Education","Law"],
+    contacts: ["hr@nobleuniversity.ac.in","deputyregistrar@nobleuniversity.ac.in"],
+    website: "https://nobleuniversity.ac.in",
+    notes: "Private university in Jodhpur."
+  },
+  {
+    id: 221, name: "JSS University Noida", domain: "jssuninoida.edu.in",
+    type: "University", state: "Uttar Pradesh", city: "Noida",
+    accred: "UGC Approved", established: "2022",
+    departments: ["Engineering","Management","Sciences","Design","Arts","Pharmacy"],
+    contacts: ["career@jssuninoida.edu.in"],
+    website: "https://jssuninoida.edu.in",
+    notes: "JSS University Noida campus. Newer campus."
+  },
+  {
+    id: 224, name: "Sabarmati University", domain: "sabarmatiuniversity.edu.in",
+    type: "University", state: "Gujarat", city: "Ahmedabad",
+    accred: "UGC Approved", established: "2018",
+    departments: ["Engineering","Management","Sciences","Arts","Education","Law"],
+    contacts: ["careers@sabarmatiuniversity.edu.in"],
+    website: "https://sabarmatiuniversity.edu.in",
+    notes: "Private university in Ahmedabad."
+  },
+  {
+    id: 228, name: "IIT Madras (Palakkad Campus)", domain: "iitmjp.ac.in",
+    type: "IIT", state: "Kerala", city: "Palakkad",
+    accred: "NBA / NIRF #1 (IIT Madras)", established: "2015",
+    departments: ["Computer Science & Engineering","Data Science","Engineering Design","Electrical Engineering","Mathematics","Physics","Humanities"],
+    contacts: ["appointments@iitmjp.ac.in","registrar@iitmjp.ac.in","hr1@iitmjp.ac.in"],
+    website: "https://iitmjp.ac.in",
+    notes: "IIT Madras – Palakkad campus. Extension of IIT Madras (NIRF #1). Strong research focus."
+  },
+  {
+    id: 232, name: "SRM IST (Delhi-NCR)", domain: "srmist.edu.in",
+    type: "University", state: "Haryana", city: "Sonipat (Delhi-NCR)",
+    accred: "NAAC A++", established: "2013",
+    departments: ["Engineering","Computer Science","Management","Sciences","Architecture","Medicine","Pharmacy"],
+    contacts: ["hr.ncr@srmist.edu.in"],
+    website: "https://srmist.edu.in",
+    notes: "SRM Institute of Science & Technology – Delhi-NCR campus."
+  },
+  {
+    id: 234, name: "MVN University", domain: "mvn.edu.in",
+    type: "University", state: "Haryana", city: "Palwal",
+    accred: "UGC Approved", established: "2013",
+    departments: ["Engineering","Management","Law","Sciences","Arts","Agriculture","Pharmacy"],
+    contacts: ["hr@mvn.edu.in"],
+    website: "https://mvn.edu.in",
+    notes: "Private university in Palwal, Haryana."
+  },
+  {
+    id: 235, name: "RAI University", domain: "raiuniversity.edu",
+    type: "University", state: "Gujarat / Chhattisgarh", city: "Ahmedabad / Raipur",
+    accred: "UGC Approved", established: "2012",
+    departments: ["Engineering","Management","Sciences","Arts","Education","Law","Agriculture"],
+    contacts: ["hrm@raiuniversity.edu"],
+    website: "https://raiuniversity.edu",
+    notes: "Private university with campuses in Gujarat and CG."
+  },
+  {
+    id: 237, name: "DBUU (Dev Bhoomi Uttarakhand University)", domain: "dbuu.ac.in",
+    type: "University", state: "Uttarakhand", city: "Dehradun",
+    accred: "UGC Approved", established: "2011",
+    departments: ["Engineering","Management","Pharmacy","Sciences","Agriculture","Education","Law"],
+    contacts: ["hr@dbuu.ac.in"],
+    website: "https://dbuu.ac.in",
+    notes: "Private university in Dehradun."
+  },
+  {
+    id: 239, name: "Sri Sri University", domain: "srisriuniversity.edu.in",
+    type: "University", state: "Odisha", city: "Cuttack",
+    accred: "UGC Approved", established: "2012",
+    departments: ["Engineering","Management","Arts & Humanities","Sciences","Education","Social Work","Yoga & Ayurveda"],
+    contacts: ["jobs@srisriuniversity.edu.in"],
+    website: "https://srisriuniversity.edu.in",
+    notes: "Sri Sri Ravi Shankar's university. Holistic & wellness focus."
+  },
+  {
+    id: 246, name: "Avantika University", domain: "avantika.edu.in",
+    type: "University", state: "Madhya Pradesh", city: "Ujjain",
+    accred: "UGC Approved", established: "2013",
+    departments: ["Design","Technology","Liberal Arts","Media","Management"],
+    contacts: ["careers@avantika.edu.in"],
+    website: "https://avantika.edu.in",
+    notes: "Design-focused private university in Ujjain. MIT Institute of Design collaboration."
+  }
+];
+
+// TYPE COLOR MAP
+function getTypeStyle(type) {
+  const map = {
+    "IIT": { bg: "rgba(79,142,247,0.14)", color: "#4f8ef7", icon: "🏛️" },
+    "IIM": { bg: "rgba(196,93,240,0.12)", color: "#c45df0", icon: "📊" },
+    "NIT/IIIT": { bg: "rgba(224,123,79,0.12)", color: "#e07b4f", icon: "⚙️" },
+    "University": { bg: "rgba(93,200,138,0.10)", color: "#5dc88a", icon: "🎓" },
+    "Institute": { bg: "rgba(240,192,64,0.10)", color: "#f0c040", icon: "🏫" },
+    "Other": { bg: "rgba(120,130,150,0.10)", color: "#7a84a0", icon: "📋" }
+  };
+  return map[type] || map["Other"];
+}
+
+function getAccredBadge(accred) {
+  if (accred.includes("A++")) return `<span class="accred-tag accred-naac-a">NAAC A++</span>`;
+  if (accred.includes("A+")) return `<span class="accred-tag accred-naac-a">NAAC A+</span>`;
+  if (accred.includes("NAAC A")) return `<span class="accred-tag accred-naac-a">NAAC A</span>`;
+  if (accred.includes("NAAC B")) return `<span class="accred-tag accred-naac-b">${accred}</span>`;
+  if (accred.includes("IIT") || accred.includes("NIRF #1")) return `<span class="accred-tag accred-iit">IIT</span>`;
+  if (accred.includes("IIM") || accred.includes("AACSB")) return `<span class="accred-tag accred-iim">IIM</span>`;
+  if (accred.includes("NIT") || accred.includes("NBA")) return `<span class="accred-tag accred-nit">NIT/NBA</span>`;
+  if (accred === "—") return `<span style="color:var(--muted);font-size:11px;">—</span>`;
+  return `<span class="accred-tag accred-ugc">UGC</span>`;
+}
+
+// STATE / FILTER KEY
+function getFilterKey(inst) {
+  const s = inst.state.toLowerCase();
+  const t = inst.type.toLowerCase();
+  const n = inst.name.toLowerCase();
+  const result = [];
+  result.push('all');
+  if (t === 'university') result.push('university');
+  if (t === 'iit' || t === 'iim' || t === 'nit/iiit') result.push('iit');
+  if (t === 'institute') result.push('institute');
+  if (s.includes('maharashtra') || s.includes('pune') || n.includes('pune')) result.push('pune');
+  if (s.includes('uttar pradesh') || s.includes('delhi') || s.includes('haryana') ||
+      s.includes('rajasthan') || s.includes('punjab') || s.includes('chandigarh') ||
+      s.includes('himachal') || s.includes('uttarakhand') || s.includes('bihar') ||
+      s.includes('jharkhand') || s.includes('madhya') || s.includes('chhattisgarh')) result.push('north');
+  if (s.includes('karnataka') || s.includes('andhra') || s.includes('telangana') ||
+      s.includes('tamil') || s.includes('kerala') || s.includes('odisha')) result.push('south');
+  return result;
+}
+
+let currentFilter = 'all';
+let currentView = 'grid';
+let sortCol = 1, sortDir = 1;
+
+function renderAll() {
+  const query = document.getElementById('searchInput').value.toLowerCase();
+  const filtered = institutions.filter(inst => {
+    const matchFilter = getFilterKey(inst).includes(currentFilter);
+    const matchSearch = !query ||
+      inst.name.toLowerCase().includes(query) ||
+      inst.state.toLowerCase().includes(query) ||
+      inst.city.toLowerCase().includes(query) ||
+      inst.departments.join(' ').toLowerCase().includes(query) ||
+      inst.accred.toLowerCase().includes(query) ||
+      inst.type.toLowerCase().includes(query);
+    return matchFilter && matchSearch;
+  });
+
+  document.getElementById('resultsCount').textContent = filtered.length;
+  renderGrid(filtered);
+  renderTable(filtered);
+}
+
+function renderGrid(data) {
+  const grid = document.getElementById('gridView');
+  grid.innerHTML = data.map(inst => {
+    const ts = getTypeStyle(inst.type);
+    const depts = inst.departments.slice(0, 4).map(d => `<span class="tag dept">${d}</span>`).join('');
+    const moreDepts = inst.departments.length > 4 ? `<span class="tag">+${inst.departments.length - 4}</span>` : '';
+    return `<div class="inst-card" style="--type-color:${ts.color};--type-bg:${ts.bg}" onclick="openModal(${inst.id})">
+      <div class="card-header">
+        <div class="card-icon" style="background:${ts.bg}">${ts.icon}</div>
+        <div class="card-title">${inst.name}</div>
+        <div class="card-badge">${inst.type}</div>
+      </div>
+      <div class="card-meta">
+        <div class="meta-row"><span class="icon">📍</span>${inst.city}, ${inst.state}</div>
+        <div class="meta-row"><span class="icon">🏅</span>${inst.accred}</div>
+        ${inst.established !== '—' ? `<div class="meta-row"><span class="icon">📅</span>Est. ${inst.established}</div>` : ''}
+      </div>
+      <div class="card-tags">${depts}${moreDepts}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderTable(data) {
+  const tbody = document.getElementById('tableBody');
+  tbody.innerHTML = data.map((inst, i) => {
+    const ts = getTypeStyle(inst.type);
+    const depts = inst.departments.slice(0,3).join(', ') + (inst.departments.length > 3 ? ` +${inst.departments.length-3}` : '');
+    return `<tr onclick="openModal(${inst.id})">
+      <td>${i+1}</td>
+      <td class="td-name">${inst.name}</td>
+      <td class="td-type" style="color:${ts.color}">${inst.type}</td>
+      <td class="td-loc">${inst.city}</td>
+      <td style="color:var(--muted);font-size:11px;">${depts || '—'}</td>
+      <td>${getAccredBadge(inst.accred)}</td>
+      <td class="td-email"><a href="mailto:${inst.contacts[0]}" onclick="event.stopPropagation()">${inst.contacts[0]}</a></td>
+    </tr>`;
+  }).join('');
+}
+
+function openModal(id) {
+  const inst = institutions.find(i => i.id === id);
+  if (!inst) return;
+  const ts = getTypeStyle(inst.type);
+
+  document.getElementById('modalTitle').textContent = inst.name;
+  document.getElementById('modalSubtitle').textContent = `${inst.type} · ${inst.city}, ${inst.state}`;
+
+  const deptHtml = inst.departments.length ?
+    `<div class="dept-grid">${inst.departments.map(d => `<div class="dept-chip">${d}</div>`).join('')}</div>` :
+    `<p style="color:var(--muted);font-size:12px;">—</p>`;
+
+  const contactsHtml = inst.contacts.map(c =>
+    `<div class="contact-item">
+      <span class="type">Email</span>
+      <span class="email"><a href="mailto:${c}">${c}</a></span>
+    </div>`
+  ).join('');
+
+  document.getElementById('modalBody').innerHTML = `
+    <div class="info-section">
+      <div class="info-section-title">Overview</div>
+      <div class="info-grid">
+        <div class="info-item"><div class="label">Type</div><div class="value" style="color:${ts.color}">${inst.type} ${ts.icon}</div></div>
+        <div class="info-item"><div class="label">Established</div><div class="value">${inst.established}</div></div>
+        <div class="info-item"><div class="label">Location</div><div class="value">📍 ${inst.city}, ${inst.state}</div></div>
+        <div class="info-item"><div class="label">Accreditation</div><div class="value">${inst.accred}</div></div>
+        ${inst.website ? `<div class="info-item" style="grid-column:span 2"><div class="label">Website</div><div class="value"><a href="${inst.website}" target="_blank">${inst.website}</a></div></div>` : ''}
+      </div>
+    </div>
+    ${inst.notes ? `
+    <div class="info-section">
+      <div class="info-section-title">About</div>
+      <p style="color:var(--text);font-size:13px;line-height:1.7;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;">${inst.notes}</p>
+    </div>` : ''}
+    <div class="info-section">
+      <div class="info-section-title">Departments / Schools</div>
+      ${deptHtml}
+    </div>
+    <div class="info-section">
+      <div class="info-section-title">Contact Emails (${inst.contacts.length})</div>
+      <div class="contact-list">${contactsHtml}</div>
+    </div>
+  `;
+
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById('modalOverlay')) closeModalDirect();
+}
+function closeModalDirect() {
+  document.getElementById('modalOverlay').classList.remove('open');
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModalDirect(); });
+
+function setFilter(f, btn) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderAll();
+}
+
+function filterInstitutions() { renderAll(); }
+
+function setView(v) {
+  currentView = v;
+  document.getElementById('gridView').style.display = v === 'grid' ? 'grid' : 'none';
+  document.getElementById('tableView').style.display = v === 'table' ? 'block' : 'none';
+  document.getElementById('gridBtn').classList.toggle('active', v === 'grid');
+  document.getElementById('tableBtn').classList.toggle('active', v === 'table');
+}
+
+// Init
+renderAll();
+</script>
+</body>
+</html>
